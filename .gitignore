@@ -6,12 +6,18 @@ __pycache__/
 # C extensions
 *.so
 
+*.pt
+*.pth
+*.onnx
+
+
 # Distribution / packaging
 .Python
 build/
 develop-eggs/
 dist/
 downloads/
+results/
 eggs/
 .eggs/
 lib/

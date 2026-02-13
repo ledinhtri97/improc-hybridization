@@ -1,0 +1,5 @@
+# Core dependencies for the hybrid image processing pipeline
+ultralytics>=8.0.0        # YOLOv8-nano + SAM (both via ultralytics)
+opencv-python>=4.8.0      # OpenCV for geometric/rule-based blocks
+torch>=2.0.0              # PyTorch (required by YOLO & SAM)
+numpy>=1.24.0             # Array operations
