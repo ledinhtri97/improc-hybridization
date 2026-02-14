@@ -23,6 +23,7 @@ class BoxToPointPrompt(Block):
     """Derive SAM point prompts from bounding box centers."""
 
     def __call__(self, data: dict) -> dict:
+        print(data.keys())
         boxes = data["boxes"]
         prompts: list[np.ndarray] = []
 

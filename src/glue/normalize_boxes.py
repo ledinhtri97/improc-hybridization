@@ -26,7 +26,15 @@ class NormalizeBoxes(Block):
 
     def __call__(self, data: dict) -> dict:
         image = data["image"]
-        boxes = data["boxes"].copy()
+        # Use boxes if available, otherwise fall back to raw_boxes
+        boxes = data.get("boxes")
+        if boxes is None or (isinstance(boxes, np.ndarray) and boxes.size == 0):
+            boxes = data.get("raw_boxes")
+        
+        if boxes is None or (isinstance(boxes, np.ndarray) and boxes.size == 0):
+            return data  # Nothing to normalize
+        
+        boxes = boxes.copy()
         h, w = image.shape[:2]
 
         normalized = boxes.copy()

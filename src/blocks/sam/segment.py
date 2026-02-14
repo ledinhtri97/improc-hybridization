@@ -34,7 +34,16 @@ class SAMSegment(Block):
         self.model = model
 
     def __call__(self, data: dict) -> dict:
-        crops = data["crops"]
+        # Get crops - if not available, create from boxes
+        crops = data.get("crops")
+        if crops is None or len(crops) == 0:
+            image = data["image"]
+            boxes = data.get("boxes", [])
+            crops = []
+            for box in boxes:
+                x1, y1, x2, y2 = map(int, box)
+                crops.append(image[y1:y2, x1:x2])
+        
         point_prompts = data.get("point_prompts")
         masks: list[np.ndarray] = []
 

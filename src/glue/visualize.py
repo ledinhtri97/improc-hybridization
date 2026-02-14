@@ -88,6 +88,10 @@ class VisualizeResults(Block):
                 w_box = x2 - x1
                 h_mask, w_mask = mask.shape[:2]
 
+                # Convert boolean mask to uint8 if needed
+                if mask.dtype != np.uint8:
+                    mask = mask.astype(np.uint8)
+                
                 # Resize mask if needed to match box dimensions
                 if h_mask != h_box or w_mask != w_box:
                     mask_resized = cv2.resize(mask, (w_box, h_box), interpolation=cv2.INTER_NEAREST)

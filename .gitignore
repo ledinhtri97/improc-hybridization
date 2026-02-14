@@ -10,6 +10,9 @@ __pycache__/
 *.pth
 *.onnx
 
+# node js modules
+node_modules/
+
 
 # Distribution / packaging
 .Python
