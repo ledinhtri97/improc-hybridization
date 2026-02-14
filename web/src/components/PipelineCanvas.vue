@@ -34,9 +34,33 @@
                 >
                   <label :for="`${element.id}-${key}`">{{ key }}:</label>
                   <input
+                    v-if="getParamType(element.id, key) === 'array'"
                     :id="`${element.id}-${key}`"
-                    :type="getParamType()"
+                    type="text"
+                    :value="element.params[key].join(',')"
+                    @change="handleArrayParam(index, key, $event.target.value)"
+                    placeholder="e.g. 0,1,2"
+                  />
+                  <input
+                    v-else-if="getParamType(element.id, key) === 'string'"
+                    :id="`${element.id}-${key}`"
+                    type="text"
+                    v-model="element.params[key]"
+                    @change="updateParam(index, key, element.params[key])"
+                  />
+                  <input
+                    v-else-if="getParamType(element.id, key) === 'number'"
+                    :id="`${element.id}-${key}`"
+                    type="number"
+                    step="any"
                     v-model.number="element.params[key]"
+                    @change="updateParam(index, key, element.params[key])"
+                  />
+                  <input
+                    v-else
+                    :id="`${element.id}-${key}`"
+                    type="text"
+                    v-model="element.params[key]"
                     @change="updateParam(index, key, element.params[key])"
                   />
                 </div>
@@ -72,7 +96,8 @@ const {
   updateBlockParam,
   reorderBlocks,
   isLoading,
-  result
+  result,
+  getBlockSchema
 } = usePipeline()
 
 const localBlocks = ref([])
@@ -90,13 +115,25 @@ function updateParam(index, paramName, value) {
   updateBlockParam(index, paramName, value)
 }
 
+function handleArrayParam(index, paramName, value) {
+  // Parse comma-separated values into array of integers
+  const arr = value.split(',')
+    .map(s => parseInt(s.trim(), 10))
+    .filter(n => !isNaN(n))
+  updateBlockParam(index, paramName, arr)
+}
+
 function onReorder() {
   reorderBlocks(localBlocks.value)
 }
 
-function getParamType(block, paramName) {
+function getParamType(blockId, paramName) {
   // Find parameter type from block schema
-  return 'text' // Default to text input
+  const schema = getBlockSchema(blockId)
+  if (!schema) return 'text'
+  
+  const param = schema.parameters.find(p => p.name === paramName)
+  return param ? param.type : 'text'
 }
 
 async function execute() {

@@ -161,10 +161,10 @@ def run_pipeline(blocks_config: list[BlockConfig], image: np.ndarray) -> Pipelin
         if text_parts:
             result_data["text"] = "\n".join(text_parts)
         
-        # Check for image output
-        if "output_path" in result:
+        # Check for image output (base64)
+        if "output_base64" in result:
             result_type = "image"
-            result_data["image_url"] = f"/results/{Path(result['output_path']).name}"
+            result_data["image_url"] = result["output_base64"]
         
         return PipelineResult(
             job_id=job_id,

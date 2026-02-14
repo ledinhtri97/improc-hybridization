@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <header class="header">
-      <h1>🔧 Hybrid Pipeline UI</h1>
+      <h1>🔧 Hybrid Pipeline </h1>
       <p class="subtitle">YOLOv8 + OpenCV + SAM</p>
     </header>
     

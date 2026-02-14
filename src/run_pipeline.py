@@ -107,7 +107,7 @@ def build_hybrid_pipeline(
     """
     if allowed_classes is None:
         # COCO: 0=person, 2=car, 5=bus, 7=truck (example subset)
-        allowed_classes = [0, 2, 5, 7]
+        allowed_classes = [17]
 
     blocks = [
         # ── Detection phase (YOLO) ──────────────────────────────

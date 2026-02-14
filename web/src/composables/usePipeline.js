@@ -6,7 +6,8 @@ const API_BASE = 'http://localhost:8000/api'
 // Shared state
 const blocks = ref([])
 const pipelineBlocks = ref([])
-const uploadedImageId = ref(null)
+const uploadedFile = ref(null)  // Store the actual file, not just ID
+const uploadedImageUrl = ref(null)  // URL for preview
 const result = ref(null)
 const isLoading = ref(false)
 const error = ref(null)
@@ -22,31 +23,20 @@ async function fetchBlocks() {
   }
 }
 
-// Upload image
-async function uploadImage(file) {
-  try {
-    isLoading.value = true
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    const response = await axios.post(`${API_BASE}/pipeline/upload`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    
-    uploadedImageId.value = response.data.image_id
-    return response.data.image_id
-  } catch (e) {
-    error.value = e.message
-    console.error('Failed to upload image:', e)
-    throw e
-  } finally {
-    isLoading.value = false
+// Upload image - just stores the file locally
+function uploadImage(file) {
+  uploadedFile.value = file
+  // Create a URL for preview
+  if (uploadedImageUrl.value) {
+    URL.revokeObjectURL(uploadedImageUrl.value)
   }
+  uploadedImageUrl.value = URL.createObjectURL(file)
+  return file
 }
 
-// Execute pipeline
+// Execute pipeline - sends image together with blocks
 async function executePipeline() {
-  if (!uploadedImageId.value) {
+  if (!uploadedFile.value) {
     error.value = 'Please upload an image first'
     return
   }
@@ -60,15 +50,25 @@ async function executePipeline() {
     isLoading.value = true
     error.value = null
     
-    const request = {
-      blocks: pipelineBlocks.value.map(block => ({
+    // Prepare blocks as JSON
+    const blocksJson = JSON.stringify(
+      pipelineBlocks.value.map(block => ({
         id: block.id,
         params: block.params
-      })),
-      image_id: uploadedImageId.value
-    }
+      }))
+    )
     
-    const response = await axios.post(`${API_BASE}/pipeline/run`, request)
+    // Send as multipart form - image sent together with blocks
+    const formData = new FormData()
+    formData.append('blocks', blocksJson)
+    formData.append('image', uploadedFile.value)
+    
+    const response = await axios.post(`${API_BASE}/pipeline/run`, formData, {
+      headers: { 
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    
     result.value = response.data
     return response.data
   } catch (e) {
@@ -121,11 +121,17 @@ function clearPipeline() {
   error.value = null
 }
 
+// Clear uploaded image
+function clearImage() {
+  uploadedFile.value = null
+  result.value = null
+}
+
 // Reset all
 function resetAll() {
   blocks.value = []
   pipelineBlocks.value = []
-  uploadedImageId.value = null
+  uploadedFile.value = null
   result.value = null
   isLoading.value = false
   error.value = null
@@ -136,7 +142,8 @@ export function usePipeline() {
     // State
     blocks,
     pipelineBlocks,
-    uploadedImageId,
+    uploadedFile,
+    uploadedImageUrl,
     result,
     isLoading,
     error,
@@ -150,6 +157,15 @@ export function usePipeline() {
     updateBlockParam,
     reorderBlocks,
     clearPipeline,
-    resetAll
+    clearImage,
+    resetAll,
+    
+    // Helpers
+    getBlockSchema
   }
+}
+
+// Helper to get block schema by ID
+function getBlockSchema(blockId) {
+  return blocks.value.find(b => b.id === blockId)
 }

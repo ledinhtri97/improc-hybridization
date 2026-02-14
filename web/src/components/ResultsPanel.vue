@@ -12,9 +12,15 @@
         class="file-input"
       />
       <label for="image-upload" class="file-label">
-        📁 {{ uploadedImageId ? 'Change Image' : 'Upload Image' }}
+        📁 {{ uploadedFile ? 'Change Image' : 'Upload Image' }}
       </label>
-      <span v-if="uploadedImageId" class="uploaded-badge">✓ Uploaded</span>
+      <span v-if="uploadedFile" class="uploaded-badge">✓ {{ uploadedFile.name }}</span>
+    </div>
+    
+    <!-- Original Image Preview -->
+    <div v-if="uploadedImageUrl" class="image-preview">
+      <h4>Original Image</h4>
+      <img :src="uploadedImageUrl" alt="Uploaded image" />
     </div>
     
     <!-- Results -->
@@ -29,7 +35,8 @@
       </div>
       
       <!-- Image Result -->
-      <div v-if="result.type === 'image' && result.data?.image_url" class="image-result">
+      <div v-if="result.type === 'image' && result.data?.image_url" class="result-image">
+        <h4>Result Image</h4>
         <img :src="result.data.image_url" alt="Pipeline result" />
       </div>
       
@@ -58,15 +65,16 @@ import { usePipeline } from '../composables/usePipeline'
 const { 
   result, 
   error, 
-  uploadedImageId, 
+  uploadedFile, 
+  uploadedImageUrl,
   uploadImage,
   isLoading 
 } = usePipeline()
 
-async function onFileChange(event) {
+function onFileChange(event) {
   const file = event.target.files[0]
   if (file) {
-    await uploadImage(file)
+    uploadImage(file)
   }
 }
 </script>
@@ -120,6 +128,24 @@ h3 {
   font-size: 12px;
 }
 
+.image-preview {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.image-preview h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.image-preview img {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
 .result-content {
   flex: 1;
 }
@@ -163,14 +189,21 @@ h3 {
   word-break: break-word;
 }
 
-.image-result {
+.result-image {
+  margin-top: 16px;
   background: white;
   border: 1px solid #ddd;
   border-radius: 6px;
   padding: 8px;
 }
 
-.image-result img {
+.result-image h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.result-image img {
   width: 100%;
   height: auto;
   border-radius: 4px;

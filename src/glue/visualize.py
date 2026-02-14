@@ -109,12 +109,22 @@ class VisualizeResults(Block):
                     image[y1:y2, x1:x2], 0.6, colored_mask, 0.4, 0
                 )
 
-        # Save the result
-        cv2.imwrite(self.output_path, image)
-
+        # Return base64 encoded image instead of saving to file
+        import base64
+        import io
+        
+        # Encode to JPEG
+        success, encoded_image = cv2.imencode('.jpg', image)
+        if not success:
+            raise ValueError("Failed to encode image to JPEG")
+        
+        # Convert to bytes and then to base64
+        image_bytes = encoded_image.tobytes()
+        base64_image = base64.b64encode(image_bytes).decode('utf-8')
+        
         return {
             **data,
-            "output_path": self.output_path,
+            "output_base64": f"data:image/jpeg;base64,{base64_image}",
         }
 
     @staticmethod

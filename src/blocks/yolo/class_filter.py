@@ -18,8 +18,6 @@ Output keys (updated):
 
 from __future__ import annotations
 
-from typing import Sequence
-
 import numpy as np
 
 from blocks.base import Block
@@ -28,12 +26,16 @@ from blocks.base import Block
 class ClassFilter(Block):
     """Keep only detections belonging to specified class IDs."""
 
-    def __init__(self, allowed_classes: Sequence[int]) -> None:
+    def __init__(self, allowed_classes) -> None:
         """
         Args:
-            allowed_classes: Collection of integer class IDs to retain.
+            allowed_classes: Collection of integer class IDs to retain, or a single int.
         """
-        self.allowed_classes = set(allowed_classes)
+        # Handle single int or list of ints
+        if isinstance(allowed_classes, int):
+            self.allowed_classes = {allowed_classes}
+        else:
+            self.allowed_classes = set(allowed_classes)
 
     def __call__(self, data: dict) -> dict:
         classes = data["classes"]
