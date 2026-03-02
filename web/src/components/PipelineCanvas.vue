@@ -2,9 +2,12 @@
   <div class="pipeline-canvas">
     <div class="pipeline-header">
       <h3>Pipeline</h3>
-      <button class="load-sample-btn" @click="loadSample" title="Load sample pipeline">
-        📋 Sample
-      </button>
+      <div class="sample-btn-wrapper">
+        <span v-if="pipelineBlocks.length === 0" class="pointing-hand">👆</span>
+        <button class="load-sample-btn" @click="loadSample" title="Load sample pipeline">
+          📋 Load Sample
+        </button>
+      </div>
     </div>
     
     <div class="pipeline-content">
@@ -153,7 +156,7 @@ async function execute() {
 
 <style scoped>
 .pipeline-canvas {
-  width: 340px;
+  width: 640px;
   min-width: 280px;
   display: flex;
   flex-direction: column;
@@ -188,6 +191,32 @@ async function execute() {
 
 .load-sample-btn:hover {
   background: #565e64;
+}
+
+.sample-btn-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pointing-hand {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  animation: bounce-point 1s ease-in-out infinite;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
+
+@keyframes bounce-point {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-8px);
+  }
 }
 
 .pipeline-content {
