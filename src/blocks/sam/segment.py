@@ -17,6 +17,7 @@ Output keys (added):
 
 from __future__ import annotations
 
+import cv2
 import numpy as np
 
 from blocks.base import Block
@@ -53,18 +54,23 @@ class SAMSegment(Block):
             if point_prompts is not None and point_prompts[i] is not None:
                 kwargs["points"] = point_prompts[i].tolist()
                 kwargs["labels"] = [1] * len(point_prompts[i])
+            results = self.model(crop, imgsz=320, **kwargs)
 
-            results = self.model(crop, **kwargs)
-
-            # Extract mask from results
+            # Extract mask from results, merge all masks if multiple
             if results and results[0].masks is not None:
                 mask_data = results[0].masks.data.cpu().numpy()
-                # Take the best (first) mask
-                masks.append(mask_data[0])
+                # Take all masks and combine them (e.g. by taking the union)
+                combined_mask = np.any(mask_data, axis=0).astype(np.uint8) * 255
+                masks.append(combined_mask)
+                # # If you prefer to keep individual masks, you could store mask_data instead
+                # masks.append(mask_data[0])
             else:
                 # No mask produced — return empty mask matching crop size
                 h, w = crop.shape[:2]
                 masks.append(np.zeros((h, w), dtype=np.uint8))
+            
+            # save the mask for visualization/debugging
+            # cv2.imwrite(f"debug_mask_{i}.png", masks[-1])
 
         return {
             **data,
