@@ -10,7 +10,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+
+import httpx
 
 from app.services.pipeline_runner import run_pipeline
 from app.models import BlockConfig, PipelineResult
@@ -75,4 +77,39 @@ async def execute_pipeline(
                 "detail": f"Pipeline execution failed: {e}",
                 "traceback": traceback.format_exc()
             }
+        )
+
+
+@router.get("/fetch-image")
+async def fetch_image(url: str):
+    """
+    Proxy endpoint to fetch an image from an external URL,
+    avoiding CORS issues in the browser.
+    """
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
+            resp = await client.get(url)
+            resp.raise_for_status()
+
+        content_type = resp.headers.get("content-type", "image/jpeg")
+        if not content_type.startswith("image/"):
+            return JSONResponse(
+                status_code=400,
+                content={"detail": f"URL did not return an image (content-type: {content_type})"}
+            )
+
+        return Response(
+            content=resp.content,
+            media_type=content_type,
+            headers={"Cache-Control": "public, max-age=3600"}
+        )
+    except httpx.HTTPStatusError as e:
+        return JSONResponse(
+            status_code=502,
+            content={"detail": f"Remote server returned {e.response.status_code}"}
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=502,
+            content={"detail": f"Failed to fetch image: {e}"}
         )

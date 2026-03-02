@@ -15,6 +15,23 @@
         📁 {{ uploadedFile ? 'Change Image' : 'Upload Image' }}
       </label>
       <span v-if="uploadedFile" class="uploaded-badge">✓ {{ uploadedFile.name }}</span>
+      
+      <!-- URL Input -->
+      <div class="url-input-section">
+        <input
+          type="text"
+          v-model="imageUrl"
+          placeholder="Paste image URL..."
+          class="url-input"
+        />
+        <button 
+          class="url-load-btn" 
+          @click="loadFromUrl" 
+          :disabled="!imageUrl || isLoadingUrl"
+        >
+          {{ isLoadingUrl ? '...' : 'Load' }}
+        </button>
+      </div>
     </div>
     
     <!-- Original Image Preview -->
@@ -59,7 +76,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref } from 'vue'
 import { usePipeline } from '../composables/usePipeline'
 
 const { 
@@ -68,8 +85,12 @@ const {
   uploadedFile, 
   uploadedImageUrl,
   uploadImage,
+  loadImageFromUrl,
   isLoading 
 } = usePipeline()
+
+const imageUrl = ref('')
+const isLoadingUrl = ref(false)
 
 function onFileChange(event) {
   const file = event.target.files[0]
@@ -77,11 +98,24 @@ function onFileChange(event) {
     uploadImage(file)
   }
 }
+
+async function loadFromUrl() {
+  if (!imageUrl.value) return
+  isLoadingUrl.value = true
+  try {
+    await loadImageFromUrl(imageUrl.value)
+  } catch (e) {
+    console.error('Failed to load image from URL:', e)
+  } finally {
+    isLoadingUrl.value = false
+  }
+}
 </script>
 
 <style scoped>
 .results-panel {
-  width: 320px;
+  flex: 1;
+  min-width: 300px;
   padding: 16px;
   background: #f8f9fa;
   border-left: 1px solid #e0e0e0;
@@ -126,6 +160,46 @@ h3 {
   margin-left: 8px;
   color: #28a745;
   font-size: 12px;
+}
+
+.url-input-section {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.url-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.url-input:focus {
+  outline: none;
+  border-color: #4a90d9;
+}
+
+.url-load-btn {
+  padding: 6px 12px;
+  background: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.url-load-btn:hover:not(:disabled) {
+  background: #357abd;
+}
+
+.url-load-btn:disabled {
+  background: #aaa;
+  cursor: not-allowed;
 }
 
 .image-preview {

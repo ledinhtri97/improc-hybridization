@@ -127,6 +127,56 @@ function clearImage() {
   result.value = null
 }
 
+// Load image from URL (proxied through backend to avoid CORS)
+async function loadImageFromUrl(url) {
+  try {
+    const proxyUrl = `${API_BASE}/pipeline/fetch-image?url=${encodeURIComponent(url)}`
+    const response = await fetch(proxyUrl)
+    if (!response.ok) {
+      const body = await response.json().catch(() => null)
+      throw new Error(body?.detail || `Server returned ${response.status}`)
+    }
+    const blob = await response.blob()
+    const filename = url.split('/').pop().split('?')[0] || 'image.jpg'
+    const file = new File([blob], filename, { type: blob.type })
+    uploadImage(file)
+    return file
+  } catch (e) {
+    error.value = `Failed to load image from URL: ${e.message}`
+    throw e
+  }
+}
+
+// Load default sample pipeline
+async function loadDefaultPipeline() {
+  const defaultBlockIds = [
+    'YOLODetect',
+    'ConfidenceFilter',
+    'ClassFilter',
+    'CropRegions',
+    'SAMSegment',
+    'VisualizeResults'
+  ]
+  
+  // Clear current pipeline
+  pipelineBlocks.value = []
+  
+  defaultBlockIds.forEach(id => {
+    const block = blocks.value.find(b => b.id === id)
+    if (block) {
+      addBlockToPipeline(block)
+    }
+  })
+
+  // Auto-load sample image
+  const sampleUrl = 'https://media.istockphoto.com/id/1781481227/photo/chicken-happy-and-portrait-of-kid-on-a-farm-learning-about-sustainable-agriculture-in-the.jpg?s=612x612&w=0&k=20&c=94AMjxcf2NB6J6c5qSlTMHpOA3mysOjriLTxrYqCkWs='
+  try {
+    await loadImageFromUrl(sampleUrl)
+  } catch (e) {
+    console.warn('Failed to load sample image:', e)
+  }
+}
+
 // Reset all
 function resetAll() {
   blocks.value = []
@@ -151,6 +201,7 @@ export function usePipeline() {
     // Actions
     fetchBlocks,
     uploadImage,
+    loadImageFromUrl,
     executePipeline,
     addBlockToPipeline,
     removeBlockFromPipeline,
@@ -159,6 +210,7 @@ export function usePipeline() {
     clearPipeline,
     clearImage,
     resetAll,
+    loadDefaultPipeline,
     
     // Helpers
     getBlockSchema

@@ -61,4 +61,8 @@ body {
   flex: 1;
   overflow: hidden;
 }
+
+.main-content > *:last-child {
+  flex: 1;
+}
 </style>

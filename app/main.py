@@ -30,14 +30,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers (before any mounts)
+app.include_router(blocks.router)
+app.include_router(pipeline.router)
+
 # Mount results directory for serving generated images
 results_dir = Path(__file__).parent.parent / "src" / "results"
 if results_dir.exists():
     app.mount("/results", StaticFiles(directory=str(results_dir)), name="results")
-
-# Include routers
-app.include_router(blocks.router)
-app.include_router(pipeline.router)
 
 
 @app.get("/")

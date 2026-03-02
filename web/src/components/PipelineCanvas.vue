@@ -1,6 +1,11 @@
 <template>
   <div class="pipeline-canvas">
-    <h3>Pipeline</h3>
+    <div class="pipeline-header">
+      <h3>Pipeline</h3>
+      <button class="load-sample-btn" @click="loadSample" title="Load sample pipeline">
+        📋 Sample
+      </button>
+    </div>
     
     <div class="pipeline-content">
       <div v-if="pipelineBlocks.length === 0" class="empty-state">
@@ -97,8 +102,13 @@ const {
   reorderBlocks,
   isLoading,
   result,
-  getBlockSchema
+  getBlockSchema,
+  loadDefaultPipeline
 } = usePipeline()
+
+function loadSample() {
+  loadDefaultPipeline()
+}
 
 const localBlocks = ref([])
 
@@ -143,7 +153,8 @@ async function execute() {
 
 <style scoped>
 .pipeline-canvas {
-  flex: 1;
+  width: 340px;
+  min-width: 280px;
   display: flex;
   flex-direction: column;
   padding: 16px;
@@ -151,10 +162,32 @@ async function execute() {
   overflow: hidden;
 }
 
-h3 {
-  margin: 0 0 16px 0;
+.pipeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.pipeline-header h3 {
+  margin: 0;
   font-size: 18px;
   color: #333;
+}
+
+.load-sample-btn {
+  padding: 4px 10px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.load-sample-btn:hover {
+  background: #565e64;
 }
 
 .pipeline-content {
