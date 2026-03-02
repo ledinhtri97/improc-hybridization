@@ -43,6 +43,5 @@ class NormalizeBoxes(Block):
 
         return {
             **data,
-            "boxes_absolute": boxes,
-            "boxes": normalized,
+            "boxes_normalized": normalized,
         }
